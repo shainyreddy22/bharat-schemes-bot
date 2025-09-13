@@ -51,6 +51,53 @@ export default function Dashboard() {
   const setActiveConversation = useMutation(api.conversations.setActiveConversation);
   const aiChat = useAction(api.ai.chatCompletion);
 
+  // Format AI content into clean, safe HTML (no # or * shown, bold labels, bullets)
+  function formatAiContentToHtml(raw: string): string {
+    if (!raw) return "";
+
+    // 1) Escape HTML
+    const escape = (s: string) =>
+      s
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    let s = escape(raw);
+
+    // 2) Remove markdown horizontal rules and excess markers
+    s = s.replace(/^\s*[-*_]{3,}\s*$/gm, "");
+    s = s.replace(/^\s*#+\s*/gm, ""); // remove headings like ###
+
+    // 3) Bold any existing **text** markers (after escaping, so only visual)
+    s = s.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    // 4) Convert common bullets to •
+    s = s.replace(/^\s*[-*]\s+/gm, "• ");
+
+    // 5) Bold leading labels like "Overview:", "Eligibility:", "Benefits:", "How to Apply:", etc.
+    s = s.replace(
+      /^(overview|eligibility|benefits|required documents|documents required|how to apply|official links|state-specific notes|tips|disclaimers|coverage|contact|application process)\s*:/gim,
+      (m) => `<strong>${m.replace(/:$/i, "")}:</strong>`
+    );
+
+    // 6) Also bold numeric section headers like "1) Overview" or "3. Benefits"
+    s = s.replace(
+      /^(\d+[\).]?\s*)([A-Za-z][^\n:]*)(:)?/gm,
+      (_m, num, title, colon) => {
+        const label = `${num}<strong>${title.trim()}</strong>${colon ? ":" : ""}`;
+        return label;
+      }
+    );
+
+    // 7) Normalize multiple blank lines
+    s = s.replace(/\n{3,}/g, "\n\n");
+
+    // 8) Convert newlines to <br/>
+    s = s.replace(/\n/g, "<br/>");
+
+    return s.trim();
+  }
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       navigate("/auth");
@@ -262,7 +309,14 @@ export default function Dashboard() {
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-white dark:bg-gray-800 border'
                           }`}>
-                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                            {msg.role === 'assistant' ? (
+                              <div
+                                className="text-sm leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: formatAiContentToHtml(msg.content) }}
+                              />
+                            ) : (
+                              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                            )}
                           </div>
                         </div>
                       </motion.div>

@@ -28,18 +28,19 @@ export const chatCompletion = action({
     const systemPrompt: ChatMessage = {
       role: "system",
       content: [
-        "You are an accurate, helpful assistant specializing in Indian and Telangana government schemes.",
-        "Always answer with a concise, structured Markdown format using these sections when relevant:",
-        "1) Overview  2) Eligibility  3) Benefits  4) Required Documents  5) How to Apply  6) Official Links  7) State-specific Notes  8) Tips/Disclaimers.",
-        "Prefer bullet points and short sentences. Include official portal links (pmjay.gov.in, pmkisan.gov.in, pmjdy.gov.in, scholarships.gov.in, nsap.nic.in, etc.) when applicable.",
-        "If unsure, say so and suggest verifying on official portals. Keep temperature low and avoid repetition.",
-        "You may use general knowledge beyond any local database. If the user asks about any Indian scheme, provide details even if not in the local dataset.",
+        "You are an accurate assistant for Indian and Telangana government schemes.",
+        "Output style rules:",
+        "- Do NOT use markdown symbols like #, *, or code blocks.",
+        "- Use clean sections with short lines. Prefer labels like: Overview:, Eligibility:, Benefits:, Required Documents:, How to Apply:, Official Links:, State-specific Notes:, Tips/Disclaimers:.",
+        "- Keep answers concise but complete. Include official portals when relevant (pmjay.gov.in, pmkisan.gov.in, pmjdy.gov.in, scholarships.gov.in, nsap.nic.in, etc.).",
+        "- If unsure, say so and suggest verifying on official portals.",
+        "- Language: respond in the requested language if provided.",
       ].join(" "),
     };
 
     const languageInstruction: ChatMessage | null =
       args.language === "te"
-        ? { role: "system", content: "Respond in Telugu (తెలుగు) unless the user explicitly asks for English." }
+        ? { role: "system", content: "Respond in Telugu (తెలుగు) unless the user asks for English." }
         : null;
 
     const finalMessages: ChatMessage[] = [systemPrompt, ...(languageInstruction ? [languageInstruction] : []), ...args.messages];
@@ -47,7 +48,6 @@ export const chatCompletion = action({
     const apiKey = process.env.OPENROUTER_API_KEY;
     const baseUrl = "https://openrouter.ai/api/v1/chat/completions";
 
-    // Try free models in order
     for (const model of FREE_MODELS) {
       try {
         const res = await fetch(baseUrl, {
@@ -60,13 +60,12 @@ export const chatCompletion = action({
           body: JSON.stringify({
             model,
             messages: finalMessages,
-            max_tokens: 700,
+            max_tokens: 1200, // allow longer, complete answers
             temperature: 0.2,
           }),
         });
 
         if (!res.ok) {
-          // Try next model
           continue;
         }
 
@@ -76,7 +75,6 @@ export const chatCompletion = action({
           return { success: true as const, model, content };
         }
       } catch (_) {
-        // Try next model silently
         continue;
       }
     }
