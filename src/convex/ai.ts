@@ -29,9 +29,11 @@ export const chatCompletion = action({
       role: "system",
       content: [
         "You are an accurate, helpful assistant specializing in Indian and Telangana government schemes.",
-        "Answer clearly with step-by-step guidance: eligibility, benefits, documents, how to apply, and official links if known.",
-        "If unsure, say so and suggest how to verify on official portals. Keep answers concise, factual, and up to date.",
-        "Respond in the user's language preference when provided (English: en, Telugu: te).",
+        "Always answer with a concise, structured Markdown format using these sections when relevant:",
+        "1) Overview  2) Eligibility  3) Benefits  4) Required Documents  5) How to Apply  6) Official Links  7) State-specific Notes  8) Tips/Disclaimers.",
+        "Prefer bullet points and short sentences. Include official portal links (pmjay.gov.in, pmkisan.gov.in, pmjdy.gov.in, scholarships.gov.in, nsap.nic.in, etc.) when applicable.",
+        "If unsure, say so and suggest verifying on official portals. Keep temperature low and avoid repetition.",
+        "You may use general knowledge beyond any local database. If the user asks about any Indian scheme, provide details even if not in the local dataset.",
       ].join(" "),
     };
 
@@ -58,8 +60,8 @@ export const chatCompletion = action({
           body: JSON.stringify({
             model,
             messages: finalMessages,
-            max_tokens: 600,
-            temperature: 0.4,
+            max_tokens: 700,
+            temperature: 0.2,
           }),
         });
 

@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [message, setMessage] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [isListening, setIsListening] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   // Convex queries and mutations
   const conversations = useQuery(api.conversations.getUserConversations);
@@ -69,7 +70,8 @@ export default function Dashboard() {
 
   const handleSendMessage = async () => {
     if (!message.trim() || !activeConversation) return;
-
+    if (isSending) return;
+    setIsSending(true);
     try {
       await sendMessage({
         conversationId: activeConversation._id,
@@ -112,10 +114,13 @@ export default function Dashboard() {
       setMessage("");
     } catch (error) {
       toast.error("Failed to send message");
+    } finally {
+      setIsSending(false);
     }
   };
 
   const handleVoiceInput = () => {
+    if (isSending) return;
     if ('webkitSpeechRecognition' in window) {
       const recognition = new (window as any).webkitSpeechRecognition();
       recognition.lang = selectedLanguage === 'te' ? 'te-IN' : 'en-IN';
@@ -257,7 +262,7 @@ export default function Dashboard() {
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-white dark:bg-gray-800 border'
                           }`}>
-                            <p className="text-sm">{msg.content}</p>
+                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -274,19 +279,26 @@ export default function Dashboard() {
                           value={message}
                           onChange={(e) => setMessage(e.target.value)}
                           placeholder={selectedLanguage === 'te' ? 'మీ ప్రశ్న టైప్ చేయండి...' : 'Type your question about government schemes...'}
-                          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              if (!isSending) handleSendMessage();
+                            }
+                          }}
                           className="pr-12"
+                          disabled={isSending}
                         />
                         <Button
                           variant="ghost"
                           size="sm"
                           className="absolute right-1 top-1/2 -translate-y-1/2"
                           onClick={handleVoiceInput}
+                          disabled={isSending}
                         >
                           <Mic className={`w-4 h-4 ${isListening ? 'text-red-500' : ''}`} />
                         </Button>
                       </div>
-                      <Button onClick={handleSendMessage} disabled={!message.trim()}>
+                      <Button onClick={handleSendMessage} disabled={!message.trim() || isSending}>
                         <Send className="w-4 h-4" />
                       </Button>
                     </div>
