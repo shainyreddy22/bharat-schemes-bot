@@ -204,7 +204,7 @@ export default function Dashboard() {
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-4">
               <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
-              <h1 className="font-bold text-lg">Schemes Assistant</h1>
+              <h1 className="font-bold text-lg">Bharat Schemes Assistant</h1>
             </div>
             <Button onClick={handleNewChat} className="w-full" size="sm">
               <Plus className="w-4 h-4 mr-2" />
@@ -261,7 +261,7 @@ export default function Dashboard() {
           <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <h2 className="font-semibold text-lg">Government Schemes Assistant</h2>
+                <h2 className="font-semibold text-lg">Bharat Schemes Assistant</h2>
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4" />
                   <select
@@ -370,7 +370,7 @@ export default function Dashboard() {
                   >
                     <Bot className="w-10 h-10 text-white" />
                   </motion.div>
-                  <h2 className="text-2xl font-bold mb-4">Welcome to Government Schemes Assistant</h2>
+                  <h2 className="text-2xl font-bold mb-4">Welcome to Bharat Schemes Assistant</h2>
                   <p className="text-muted-foreground mb-6">
                     Your AI-powered companion for navigating Indian government schemes. 
                     Ask questions in English or Telugu and get personalized recommendations.

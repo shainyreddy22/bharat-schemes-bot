@@ -83,7 +83,7 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
               <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
-              <span className="font-bold text-xl">Schemes Assistant</span>
+              <span className="font-bold text-xl">Bharat Schemes Assistant</span>
               <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
                 Built for India
               </Badge>
@@ -289,7 +289,7 @@ export default function Landing() {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
-                <span className="font-bold text-xl">Schemes Assistant</span>
+                <span className="font-bold text-xl">Bharat Schemes Assistant</span>
               </div>
               <p className="text-gray-400">
                 AI-powered assistant for Indian government schemes, 
