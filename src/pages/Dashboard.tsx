@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useAction } from "convex/react";
 import { toast } from "sonner";
 import { Id } from "@/convex/_generated/dataModel";
 
@@ -48,6 +48,7 @@ export default function Dashboard() {
   const sendMessage = useMutation(api.messages.sendMessage);
   const addAssistantMessage = useMutation(api.messages.addAssistantMessage);
   const setActiveConversation = useMutation(api.conversations.setActiveConversation);
+  const aiChat = useAction(api.ai.chatCompletion);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -76,23 +77,37 @@ export default function Dashboard() {
         language: selectedLanguage
       });
 
-      // Simulate AI response
-      setTimeout(async () => {
-        const responses = [
-          "I can help you find government schemes that match your needs. What specific area are you interested in - healthcare, education, agriculture, or housing?",
-          "Based on your query, I found several relevant schemes. Let me provide you with detailed information about eligibility and application process.",
-          "Here are the documents you'll need for this scheme. Would you like me to help you find the nearest application center?",
-          "This scheme offers great benefits for your situation. Let me explain the step-by-step application process."
-        ];
-        
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        
+      // Build short context from recent messages + current user message
+      const recent: Array<{ role: "system" | "user" | "assistant"; content: string }> =
+        (messages ?? []).slice(-12).map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })) as Array<{ role: "user" | "assistant"; content: string }>;
+
+      const contextMessages = [
+        ...recent,
+        { role: "user" as const, content: message.trim() },
+      ];
+
+      const result = await aiChat({
+        messages: contextMessages,
+        language: selectedLanguage,
+      });
+
+      if ((result as any)?.success) {
         await addAssistantMessage({
           conversationId: activeConversation._id,
-          content: randomResponse,
+          content: (result as any).content,
           language: selectedLanguage
         });
-      }, 1000);
+      } else {
+        await addAssistantMessage({
+          conversationId: activeConversation._id,
+          content:
+            "I'm having trouble connecting to the AI right now. Please try again shortly or add an OpenRouter key in Integrations.",
+          language: selectedLanguage
+        });
+      }
 
       setMessage("");
     } catch (error) {
